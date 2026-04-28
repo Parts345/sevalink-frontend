@@ -4,29 +4,39 @@ export function TaskCard({ task, refreshTasks }) {
   const isFull = task.filledSlots >= task.volunteersNeeded || task.status === "closed";
   const taskId = task.taskId || task._id;
 
-  const acceptTask = async () => {
-    try {
-      const token = localStorage.getItem("token");
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-      const res = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/accept`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+const acceptTask = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Failed to accept task");
-      } else {
-        if (refreshTasks) refreshTasks();
-      }
-    } catch (error) {
-      console.error("Error accepting task:", error);
-      alert("Network error: Could not reach backend");
+    if (!token) {
+      alert("No token found. Auto login failed.");
+      return;
     }
-  };
+
+    const res = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/accept`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",   // 🔥 IMPORTANT
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ Backend error:", data);
+      alert(data.message || "Failed to accept task");
+    } else {
+      alert("✅ Task accepted!");
+      if (refreshTasks) refreshTasks();
+    }
+  } catch (error) {
+    console.error("❌ Network error:", error);
+    alert("Network error");
+  }
+};
 
   return (
     <article className="task-card">
