@@ -1,3 +1,5 @@
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 export function TaskCard({ task, refreshTasks }) {
   const isFull = task.filledSlots >= task.volunteersNeeded || task.status === "closed";
   const taskId = task.taskId || task._id;
@@ -6,7 +8,7 @@ export function TaskCard({ task, refreshTasks }) {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/accept`, {
+      const res = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/accept`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -14,13 +16,15 @@ export function TaskCard({ task, refreshTasks }) {
       });
 
       const data = await res.json();
+
       if (!res.ok) {
-        alert(data.message); // Show error if trying to accept twice
+        alert(data.message || "Failed to accept task");
       } else {
         if (refreshTasks) refreshTasks();
       }
     } catch (error) {
       console.error("Error accepting task:", error);
+      alert("Network error: Could not reach backend");
     }
   };
 
@@ -65,10 +69,9 @@ export function TaskCard({ task, refreshTasks }) {
           className="primary-button"
           disabled={isFull}
           onClick={(e) => {
-            e.stopPropagation(); // prevent row click from overriding
+            e.stopPropagation();
             acceptTask();
           }}
-          type="button"
         >
           {isFull ? "Closed" : "Accept Task"}
         </button>
