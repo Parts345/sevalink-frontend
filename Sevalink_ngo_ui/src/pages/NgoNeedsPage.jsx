@@ -17,56 +17,39 @@ export function NgoNeedsPage({ volunteerSkills }) {
   const [form, setForm] = useState(initialForm);
   const [livePosts, setLivePosts] = useState([]);
 
-  // ✅ FIXED FETCH
   const fetchTasksFromDB = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/tasks`);
-    const data = await response.json();
-
-    // ✅ FIXED
-    setLivePosts(data.tasks || []);
-  } catch (err) {
-    console.error("Failed to load tasks:", err);
-  }
-};
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks`);
+      const data = await response.json();
+      setLivePosts(data.tasks || []);
+    } catch (err) {
+      console.error("Failed to load tasks:", err);
+    }
+  };
 
   useEffect(() => {
     fetchTasksFromDB();
   }, []);
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({
-      ...current,
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
       [name]: name === "volunteersNeeded" ? Number(value) : value
     }));
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(e) {
+    e.preventDefault();
 
     try {
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       let lat = 19.076;
       let lng = 72.8777;
-
-      if (apiKey) {
-        const address = encodeURIComponent(`${form.area}, Maharashtra, India`);
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`
-        );
-        const geoData = await geoRes.json();
-
-        if (geoData.results?.length > 0) {
-          lat = geoData.results[0].geometry.location.lat;
-          lng = geoData.results[0].geometry.location.lng;
-        }
-      }
 
       const payload = {
         title: form.needTitle,
         description: form.description,
-        volunteersNeeded: Number(form.volunteersNeeded),
+        volunteersNeeded: form.volunteersNeeded,
         urgency: form.urgency.toLowerCase(),
         requiredSkills: [form.skill],
         status: "open",
@@ -82,34 +65,107 @@ export function NgoNeedsPage({ volunteerSkills }) {
       setForm(initialForm);
       fetchTasksFromDB();
 
-      alert("Success! Request published.");
+      alert("✅ Request published!");
     } catch (err) {
-      console.error("ERROR:", err);
-      alert("Network error: Could not reach backend.");
+      console.error(err);
+      alert("❌ Failed to publish");
     }
   }
 
   return (
     <main className="content-grid ngo-grid">
+      
+      {/* 🔥 LEFT PANEL (FIXED FORM) */}
       <section className="panel form-panel">
-        <form onSubmit={handleSubmit}>
-          <input name="needTitle" value={form.needTitle} onChange={handleChange} />
-          <input name="area" value={form.area} onChange={handleChange} />
+        <div className="panel-heading">
+          <h3>Post NGO Need</h3>
+        </div>
 
-          <button type="submit">Publish</button>
+        <form className="need-form" onSubmit={handleSubmit}>
+          
+          <label>
+            Title
+            <input
+              name="needTitle"
+              value={form.needTitle}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            Area
+            <input
+              name="area"
+              value={form.area}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <div className="form-row">
+            <label>
+              Skill
+              <select name="skill" value={form.skill} onChange={handleChange}>
+                {volunteerSkills.map((skill) => (
+                  <option key={skill} value={skill}>{skill}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Volunteers Needed
+              <input
+                type="number"
+                name="volunteersNeeded"
+                min="1"
+                value={form.volunteersNeeded}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+
+          <label>
+            Urgency
+            <select name="urgency" value={form.urgency} onChange={handleChange}>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </label>
+
+          <label>
+            Description
+            <textarea
+              name="description"
+              rows="4"
+              value={form.description}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <button className="primary-button full-width" type="submit">
+            Publish Request
+          </button>
         </form>
       </section>
 
+      {/* 🔥 RIGHT PANEL (POSTS) */}
       <section className="panel ngo-posts-panel">
-        <span>{livePosts.length} total</span>
+        <div className="panel-heading">
+          <h3>{livePosts.length} Requests</h3>
+        </div>
 
-        {livePosts.length > 0 ? (
-          livePosts.map((post) => (
-            <NgoPostCard key={post._id || post.taskId} post={post} />
-          ))
-        ) : (
-          <p>No posts found.</p>
-        )}
+        <div className="ngo-post-list">
+          {livePosts.length > 0 ? (
+            livePosts.map((post) => (
+              <NgoPostCard key={post._id} post={post} />
+            ))
+          ) : (
+            <p>No posts found.</p>
+          )}
+        </div>
       </section>
     </main>
   );
