@@ -28,6 +28,8 @@ useEffect(() => {
 
       // ✅ FIXED
       setLocalTasks(data.tasks || []);
+      console.log("🔥 TASKS FROM API:", data.tasks);
+      
     } catch (err) {
       console.error("Failed to load tasks on dashboard refresh:", err);
     }
@@ -46,11 +48,14 @@ useEffect(() => {
   };
 
   const filteredTasks = useMemo(() => {
-    if (selectedFilter === "All") return localTasks;
-    return localTasks.filter((task) =>
-      task.requiredSkills?.includes(selectedFilter)
-    );
-  }, [selectedFilter, localTasks]);
+  if (selectedFilter === "All") return localTasks;
+
+  return localTasks.filter(
+    (task) =>
+      task.requiredSkills &&
+      task.requiredSkills.includes(selectedFilter)
+  );
+}, [selectedFilter, localTasks]);
 
   const selectedTask =
     filteredTasks?.find((task) => (task._id || task.taskId) === selectedTaskId) ||
