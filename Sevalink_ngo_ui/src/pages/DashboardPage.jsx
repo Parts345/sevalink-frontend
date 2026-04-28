@@ -24,7 +24,7 @@ export function DashboardPage({
       try {
         const response = await fetch(`${API_BASE_URL}/api/tasks`);
         const data = await response.json();
-        setLocalTasks(data.tasks || []);
+        setLocalTasks(Array.isArray(data) ? data : data.tasks || []);
       } catch (err) {
         console.error("Failed to load tasks on dashboard refresh:", err);
       }

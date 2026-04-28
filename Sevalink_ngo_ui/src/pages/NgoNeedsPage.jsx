@@ -22,7 +22,7 @@ export function NgoNeedsPage({ volunteerSkills }) {
     try {
       const response = await fetch(`${API_BASE_URL}/api/tasks`);
       const data = await response.json();
-      setLivePosts(data.tasks || []);
+      setLivePosts(Array.isArray(data) ? data : data.tasks || []);
     } catch (err) {
       console.error("Failed to load tasks:", err);
     }
