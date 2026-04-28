@@ -3,6 +3,9 @@ import { SkillPill } from "../components/SkillPill";
 import { TaskCard } from "../components/TaskCard";
 import { TaskMap } from "../components/TaskMap";
 
+// ✅ USE ENV VARIABLE
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 export function DashboardPage({
   activeRole,
   onToggleSkill,
@@ -11,16 +14,15 @@ export function DashboardPage({
   volunteer,
   refreshTasks
 }) {
-  // 1. Create a local state to hold tasks
   const [localTasks, setLocalTasks] = useState(tasks || []);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState("All");
 
-  // 2. Self-Healing Fetch: If the page reloads, grab data directly from the DB
+  // ✅ FIXED FETCH (NO LOCALHOST)
   useEffect(() => {
     const fetchLiveTasks = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/tasks");
+        const response = await fetch(`${API_BASE_URL}/api/tasks`);
         const data = await response.json();
         setLocalTasks(data.tasks || []);
       } catch (err) {
@@ -30,7 +32,7 @@ export function DashboardPage({
     fetchLiveTasks();
   }, []);
 
-  // 3. Fallback Volunteer Profile (Prevents the "Loading..." stuck state)
+  // ✅ FALLBACK VOLUNTEER
   const safeVolunteer = volunteer || {
     name: "Soham (Test Volunteer)",
     email: "volunteer@sevalink.com",
@@ -41,10 +43,10 @@ export function DashboardPage({
   };
 
   const filteredTasks = useMemo(() => {
-    if (selectedFilter === "All") {
-      return localTasks; // Use localTasks instead of safeTasks
-    }
-    return localTasks.filter((task) => task.requiredSkills?.includes(selectedFilter));
+    if (selectedFilter === "All") return localTasks;
+    return localTasks.filter((task) =>
+      task.requiredSkills?.includes(selectedFilter)
+    );
   }, [selectedFilter, localTasks]);
 
   const selectedTask =
@@ -54,7 +56,7 @@ export function DashboardPage({
 
   return (
     <main className="content-grid">
-      {/* ================= LEFT PANEL ================= */}
+      {/* LEFT PANEL */}
       <section className="panel volunteer-panel">
         <div className="panel-heading">
           <div>
@@ -73,11 +75,17 @@ export function DashboardPage({
           </article>
           <article>
             <span>Location</span>
-            <strong>{safeVolunteer.location?.label || safeVolunteer.location?.city || "-"}</strong>
+            <strong>
+              {safeVolunteer.location?.label ||
+                safeVolunteer.location?.city ||
+                "-"}
+            </strong>
           </article>
           <article>
             <span>Availability</span>
-            <strong>{safeVolunteer.availability?.join(", ") || "-"}</strong>
+            <strong>
+              {safeVolunteer.availability?.join(", ") || "-"}
+            </strong>
           </article>
         </div>
 
@@ -99,17 +107,9 @@ export function DashboardPage({
             ))}
           </div>
         </div>
-
-        <div className="login-card">
-          <h4>Testing Data</h4>
-          <p>Logged in automatically as: <b>{safeVolunteer.email}</b></p>
-          <p className="muted">
-            Toggle roles above to switch between NGO and Volunteer accounts.
-          </p>
-        </div>
       </section>
 
-      {/* ================= TASK PANEL ================= */}
+      {/* TASK PANEL */}
       <section className="panel task-panel">
         <div className="panel-heading">
           <div>
@@ -119,17 +119,12 @@ export function DashboardPage({
           <span className="status-pill">{activeRole} mode</span>
         </div>
 
-        <div className="info-banner">
-          Choose a skill filter to narrow the list.
-        </div>
-
         <div className="filters">
           {["All", ...(skills || [])].map((skill) => (
             <button
               className={selectedFilter === skill ? "active" : ""}
               key={skill}
               onClick={() => setSelectedFilter(skill)}
-              type="button"
             >
               {skill}
             </button>
@@ -144,11 +139,11 @@ export function DashboardPage({
               const taskId = task._id || task.taskId;
               return (
                 <div
-                  className={`task-list-item ${selectedTaskId === taskId ? "selected" : ""}`}
+                  className={`task-list-item ${
+                    selectedTaskId === taskId ? "selected" : ""
+                  }`}
                   key={taskId}
                   onClick={() => setSelectedTaskId(taskId)}
-                  role="button"
-                  tabIndex={0}
                 >
                   <TaskCard task={task} refreshTasks={refreshTasks} />
                 </div>
@@ -158,13 +153,13 @@ export function DashboardPage({
         </div>
       </section>
 
-      {/* ================= MAP PANEL ================= */}
+      {/* MAP PANEL */}
       {selectedTask ? (
         <TaskMap selectedTask={selectedTask} />
       ) : (
         <section className="panel map-panel empty-state">
           <h3>No matching tasks yet</h3>
-          <p>Try another skill filter or add a new NGO request.</p>
+          <p>Try another skill filter.</p>
         </section>
       )}
     </main>
