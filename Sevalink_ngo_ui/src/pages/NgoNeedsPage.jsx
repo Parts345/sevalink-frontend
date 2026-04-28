@@ -19,14 +19,16 @@ export function NgoNeedsPage({ volunteerSkills }) {
 
   // ✅ FIXED FETCH
   const fetchTasksFromDB = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks`);
-      const data = await response.json();
-      setLivePosts(Array.isArray(data) ? data : data.tasks || []);
-    } catch (err) {
-      console.error("Failed to load tasks:", err);
-    }
-  };
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/tasks`);
+    const data = await response.json();
+
+    // ✅ FIXED
+    setLivePosts(data.tasks || []);
+  } catch (err) {
+    console.error("Failed to load tasks:", err);
+  }
+};
 
   useEffect(() => {
     fetchTasksFromDB();

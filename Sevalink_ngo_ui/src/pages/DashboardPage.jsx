@@ -19,18 +19,21 @@ export function DashboardPage({
   const [selectedFilter, setSelectedFilter] = useState("All");
 
   // ✅ FIXED FETCH (NO LOCALHOST)
-  useEffect(() => {
-    const fetchLiveTasks = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/tasks`);
-        const data = await response.json();
-        setLocalTasks(Array.isArray(data) ? data : data.tasks || []);
-      } catch (err) {
-        console.error("Failed to load tasks on dashboard refresh:", err);
-      }
-    };
-    fetchLiveTasks();
-  }, []);
+  // inside useEffect
+useEffect(() => {
+  const fetchLiveTasks = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks`);
+      const data = await response.json();
+
+      // ✅ FIXED
+      setLocalTasks(data.tasks || []);
+    } catch (err) {
+      console.error("Failed to load tasks on dashboard refresh:", err);
+    }
+  };
+  fetchLiveTasks();
+}, []);
 
   // ✅ FALLBACK VOLUNTEER
   const safeVolunteer = volunteer || {
