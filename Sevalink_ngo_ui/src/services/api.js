@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function loginUser(data) {
   const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -39,7 +39,6 @@ export async function createTask(data, token) {
 
 // --- ADMIN DASHBOARD STATS ---
 export const getDashboardStats = async () => {
-  // Simulating a quick API call for your presentation
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
